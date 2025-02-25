@@ -11,9 +11,6 @@ main(rootEl);
 
 function myP5(p5: p5) {
   let font: p5.Font;
-  let timeMultiplier = .0002;
-  let noiseSize = 80;
-  let noiseScale = 5;
 
   // user code goes here
   Object.assign(p5, {
@@ -34,6 +31,8 @@ function myP5(p5: p5) {
       let noiseScale = parameterStore.noiseScale;
       let falloff = parameterStore.noiseDetailFalloff
       let octaves = parameterStore.noiseDetailOctave
+      let noiseOffsetParam = parameterStore.noiseOffset
+      let numberOfCircles = parameterStore.numberOfCircles
 
     p5.noiseDetail(
       // number of 'octaves'
@@ -55,19 +54,24 @@ function myP5(p5: p5) {
     let time = p5.millis() * timeMultiplier;
 
     // draw a circle by stepping through in radians in small increments
-    for (let i = 0; i < 2 * Math.PI; i += 0.005) {
-      p5.push();
-      let size = Math.min(p5.width, p5.height) / 2.5;
-      let xNoise = p5.noise(i * noiseScale, time);
-      let yNoise = p5.noise(time, i * noiseScale);
-      let x = size * Math.cos(i) + xNoise * noiseSize;
-      let y = size * Math.sin(i) + yNoise * noiseSize;
-      let noiseOffset = noiseSize / 2;
-      p5.translate(x,y);
-      p5.noStroke();
-      p5.circle(-noiseOffset, -noiseOffset, 3);
-      p5.pop();
-    }
+      let shrinkFactor = 1
+      for (let c = 0; c < numberOfCircles; c++ ) {
+        for (let i = 0; i < 2 * Math.PI; i += 0.005) {
+          p5.push();
+          let size = Math.min(p5.width, p5.height) / 2.5 * shrinkFactor;
+          let xNoise = p5.noise((i + 0.005 * c * noiseOffsetParam) * noiseScale, time);
+          let yNoise = p5.noise(time, (i + 0.005 * c * noiseOffsetParam) * noiseScale);
+          let x = size * Math.cos(i) + xNoise * noiseSize;
+          let y = size * Math.sin(i) + yNoise * noiseSize;
+          let noiseOffset = noiseSize / 2;
+          p5.translate(x,y);
+          p5.noStroke();
+          p5.circle(-noiseOffset, -noiseOffset, 3);
+          p5.pop();
+        }
+
+        shrinkFactor -= 0.05
+      }
     },
   } satisfies Pick<typeof p5, "preload" | "setup" | "draw">);
 }
@@ -108,6 +112,18 @@ const numericParameterDefs = {
     "max": 1,
     "step": 0.05,
     "defaultValue": 0.5,
+  },
+  "noiseOffset": {
+    "min": 10,
+    "max": 1000,
+    "step": 10,
+    "defaultValue": 100,
+  },
+  "numberOfCircles": {
+    "min": 1,
+    "max": 10,
+    "step": 1,
+    "defaultValue": 3,
   }
 }
 
@@ -118,6 +134,8 @@ const initParameterStore = (): Record<keyof typeof numericParameterDefs, number>
     "noiseScale": 5,
     "noiseDetailOctave": 5,
     "noiseDetailFalloff": 0.5,
+    "noiseOffset": 10,
+    "numberOfCircles": 3
   }
 }
 
