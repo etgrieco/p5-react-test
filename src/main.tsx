@@ -32,12 +32,21 @@ function myP5(p5: p5) {
       let timeMultiplier = parameterStore.timeMultiplier;
       let noiseSize = parameterStore.noiseSize;
       let noiseScale = parameterStore.noiseScale;
+      let falloff = parameterStore.noiseDetailFalloff
+      let octaves = parameterStore.noiseDetailOctave
+
+    p5.noiseDetail(
+      // number of 'octaves'
+      octaves, 
+      // scale per-octave
+      falloff
+    );
 
       // Instead of clearing, draw a semi-transparent black rectangle
     // that partially obscures previous frames
     p5.push();
     p5.translate(-p5.width/2, -p5.height/2); // Move to top-left in WEBGL mode
-    p5.fill(0, 0, 0, 20); // Black with very low opacity
+    p5.fill('#640D5F40'); // Black with very low opacity
     p5.noStroke();
     p5.rect(0, 0, p5.width, p5.height);
     p5.pop();
@@ -73,8 +82,8 @@ const numericParameterDefs = {
   "timeMultiplier": {
     "min": 0,
     "max": 1,
-    "step": 0.001,
-    "defaultValue": 0.001,
+    "step": 0.0001,
+    "defaultValue": 0.0001,
   },
   "noiseSize": {
     "min": 0,
@@ -88,44 +97,36 @@ const numericParameterDefs = {
     "step": 0.1,
     "defaultValue": 5,
   },
+  "noiseDetailOctave": {
+    "min": 0,
+    "max": 10,
+    "step": 1,
+    "defaultValue": 5,
+  },
+  "noiseDetailFalloff": {
+    "min": 0,
+    "max": 1,
+    "step": 0.05,
+    "defaultValue": 0.5,
+  }
 }
 
-const initParameterStore = () => { return {
+const initParameterStore = (): Record<keyof typeof numericParameterDefs, number> => {
+  return {
     "timeMultiplier": 0.0002,
     "noiseSize": 80,
     "noiseScale": 5,
+    "noiseDetailOctave": 5,
+    "noiseDetailFalloff": 0.5,
   }
 }
 
 const parameterStore = initParameterStore()
 
 function TestApp() {
-  const [value, setValue] = useState("");
-  const [value2, setValue2] = useState("");
-  const [value3, setValue3] = useState("");
-
-
   const [numericParameters, setNumericParameters] = useState(initParameterStore());
-  const numbers = [1,2,3];
   return <div>
-    Hello World
     <br/>
-    { numbers.map( (n) => <Fragment key={n}><span>{n}</span><br/></Fragment>) }
-    <input id="test" type="range" min="0" max="100" value={value} onChange={(e) => {
-      console.log(e.target.value, typeof e.target.value);
-      setValue(e.target.value);
-      
-    }} />
-    <input id="test2" type="range" min="0" max="100" value={value2} onChange={(e) => {
-      console.log(e.target.value, typeof e.target.value);
-      setValue2(e.target.value);
-      
-    }} />
-    <input id="test3" type="range" min="0" max="100" value={value3} onChange={(e) => {
-      console.log(e.target.value, typeof e.target.value);
-      setValue3(e.target.value);
-      
-    }} />
     <br/>
     { Object.entries(numericParameterDefs).map( ([key,value]) => <div key={key}>
       <label>{key}</label><input type="range" min={value.min} max={value.max} step={value.step} value={numericParameters[key as keyof typeof numericParameters]} onChange={(e) => {
