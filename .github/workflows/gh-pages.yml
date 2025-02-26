@@ -1,0 +1,42 @@
+# If you’d like to deploy this to GitHub pages, rename this
+# file to `gh-pages.yml` and read the mini-tutorial on
+# https://www.11ty.dev/docs/deployment/#deploy-an-eleventy-project-to-github-pages
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4.0.0
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
